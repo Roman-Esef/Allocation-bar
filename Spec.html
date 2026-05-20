@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summary Breakdown Widget — Design Specification</title>
+<link rel="stylesheet" href="widget.css">
+<link rel="stylesheet" href="spec.css">
+</head>
+<body>
+
+<template id="__bundler_thumbnail" data-bg-color="#F7F8FB">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(300 240)">
+      <text x="0" y="0" font-family="Helvetica, Arial, sans-serif" font-size="32" fill="#54596A">Summary Breakdown</text>
+      <text x="0" y="86" font-family="Helvetica, Arial, sans-serif" font-size="72" font-weight="700" fill="#1B1D24">1 279</text>
+      <g transform="translate(0 116)">
+        <rect x="0"   y="0" width="220" height="22" rx="11" fill="#7C7AED"/>
+        <rect x="230" y="0" width="180" height="22" fill="#6CC36E"/>
+        <rect x="420" y="0" width="120" height="22" fill="#5FB8D6"/>
+        <rect x="550" y="0" width="50"  height="22" rx="11" fill="#E87B6F"/>
+      </g>
+      <g transform="translate(0 180)" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#1B1D24">
+        <circle cx="14" cy="22" r="8" fill="#7C7AED"/>
+        <text x="40" y="30">Кредит</text>
+        <text x="600" y="30" text-anchor="end" fill="#54596A">35,00%</text>
+      </g>
+      <g transform="translate(0 230)" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#1B1D24">
+        <circle cx="14" cy="22" r="8" fill="#6CC36E"/>
+        <text x="40" y="30">Акции</text>
+        <text x="600" y="30" text-anchor="end" fill="#54596A">30,00%</text>
+      </g>
+      <g transform="translate(0 280)" font-family="Helvetica, Arial, sans-serif" font-size="28" fill="#1B1D24">
+        <circle cx="14" cy="22" r="8" fill="#5FB8D6"/>
+        <text x="40" y="30">РЕПО</text>
+        <text x="600" y="30" text-anchor="end" fill="#54596A">20,00%</text>
+      </g>
+    </g>
+  </svg>
+</template>
+
+<div class="doc-shell">
+
+  <!-- ===================== STICKY NAV ===================== -->
+  <aside class="doc-nav">
+    <div class="doc-nav-brand">Design System / Data Viz</div>
+    <div class="doc-nav-title">Summary Breakdown</div>
+    <ol>
+      <li><a href="#s1">1. Обзор</a></li>
+      <li><a href="#s-anatomy" class="doc-nav-sub">Анатомия</a></li>
+      <li><a href="#s-props" class="doc-nav-sub">Параметры</a></li>
+      <li><a href="#s2">2. Режимы отображения</a></li>
+      <li><a href="#s3">3. Количество позиций</a></li>
+      <li><a href="#s4">4. Состояния</a></li>
+      <li><a href="#s5">5. Цветовая система</a></li>
+      <li><a href="#s6">6. Прогресс-бар</a></li>
+      <li><a href="#s7">7. Адаптивность</a></li>
+      <li><a href="#s71" class="doc-nav-sub">7.1 Ширина</a></li>
+      <li><a href="#s72" class="doc-nav-sub">7.2 Высота</a></li>
+      <li><a href="#s73" class="doc-nav-sub">7.3 Растяжение</a></li>
+      <li><a href="#s74" class="doc-nav-sub">7.4 Лейауты</a></li>
+      <li><a href="#s75" class="doc-nav-sub">7.5 Динамика</a></li>
+      <li><a href="#s76" class="doc-nav-sub">7.6 Контент</a></li>
+      <li><a href="#s77" class="doc-nav-sub">7.7 A11y</a></li>
+      <li><a href="#s-demo">Интерактивный демо</a></li>
+      <li><a href="#s8">8. Числа и типографика</a></li>
+      <li><a href="#s9">9. Корнер-кейсы</a></li>
+      <li><a href="#s10">10. JSON</a></li>
+      <li><a href="#s11">11. Checklist</a></li>
+      <li><a href="#s12">12. Out of scope</a></li>
+    </ol>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="doc-main">
+
+    <header>
+      <div class="doc-eyebrow">Component · v1.0 · Status: Stable</div>
+      <h1 class="doc-h1">Summary Breakdown Widget</h1>
+      <p class="doc-lead">
+        Универсальный компонент для отображения итогового числового значения и его
+        детализации по составляющим. Не привязан к доменной области — используется
+        для финансовых сумм, количества штук, документов, сделок или любых других
+        агрегируемых величин.
+      </p>
+    </header>
+
+    <!-- ============== 1. ОВЕРВЬЮ ============== -->
+    <h2 class="doc-h2" id="s1"><span class="doc-h2-num">01</span>Обзор компонента</h2>
+
+    <p class="doc-p">
+      <strong>Принцип универсальности.</strong> Компонент не знает, что такое «кредит» или
+      «акции». Он принимает массив <code class="doc-inline-code">items[]</code> с
+      произвольными лейблами и значениями. Все доменные термины приходят снаружи как props.
+    </p>
+    <p class="doc-p">
+      <strong>Где применяется.</strong> Карточки на дашборде, сайдбары детализации,
+      виджеты в модальных окнах и аккордеонах. Не подходит для случаев, где нужна
+      сортировка пользователем, drill-down или редактирование значений — см. раздел 12.
+    </p>
+
+    <!-- Anatomy -->
+    <h3 class="doc-h3" id="s-anatomy"><span class="doc-h3-num">1.1</span>Анатомия</h3>
+
+    <div class="doc-anatomy">
+      <svg viewBox="0 0 980 380" xmlns="http://www.w3.org/2000/svg" font-family="Helvetica, Arial, sans-serif">
+        <defs>
+          <marker id="anaArr" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#A5ABBA"/>
+          </marker>
+          <marker id="anaArrEnd" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L8,4 L0,8 z" fill="#A5ABBA"/>
+          </marker>
+        </defs>
+
+        <!-- THE COMPONENT — rendered as plain elements, no decorative frame -->
+        <!-- header: label + total, baseline-aligned -->
+        <text x="60" y="60" font-size="13" fill="#54596A">ВБС по сделке на 25.02.2026, млн. руб.</text>
+        <text x="540" y="60" font-size="18" font-weight="700" fill="#1B1D24" text-anchor="end">1 279</text>
+
+        <!-- bar: 8px height, stacked segments with 2px gaps, full radius -->
+        <g>
+          <rect x="60"  y="84" width="200" height="8" rx="4" ry="4" fill="#7C7AED"/>
+          <rect x="262" y="84" width="160" height="8" fill="#6CC36E"/>
+          <rect x="424" y="84" width="100" height="8" fill="#5FB8D6"/>
+          <rect x="526" y="84" width="14"  height="8" rx="4" ry="4" fill="#E87B6F"/>
+        </g>
+
+        <!-- rows -->
+        <g font-size="14" fill="#1B1D24">
+          <g transform="translate(60,116)">
+            <circle cx="7" cy="10" r="4" fill="#7C7AED"/>
+            <text x="24" y="14">Кредит</text>
+            <text x="460" y="14" text-anchor="end" fill="#54596A">35,00%</text>
+            <text x="540" y="14" text-anchor="end">511,60</text>
+          </g>
+          <g transform="translate(60,148)">
+            <circle cx="7" cy="10" r="4" fill="#6CC36E"/>
+            <text x="24" y="14">Акции</text>
+            <text x="460" y="14" text-anchor="end" fill="#54596A">35,00%</text>
+            <text x="540" y="14" text-anchor="end">511,60</text>
+          </g>
+          <g transform="translate(60,180)">
+            <circle cx="7" cy="10" r="4" fill="#5FB8D6"/>
+            <text x="24" y="14">РЕПО</text>
+            <text x="460" y="14" text-anchor="end" fill="#54596A">25,00%</text>
+            <text x="540" y="14" text-anchor="end">511,60</text>
+          </g>
+          <g transform="translate(60,212)">
+            <circle cx="7" cy="10" r="4" fill="#E87B6F"/>
+            <text x="24" y="14">Комиссия</text>
+            <text x="460" y="14" text-anchor="end" fill="#54596A">5,00%</text>
+            <text x="540" y="14" text-anchor="end">511,60</text>
+          </g>
+        </g>
+
+        <!-- ============ ANNOTATIONS ============ -->
+        <g stroke="#C2C6D2" stroke-width="1" fill="none">
+          <!-- Label leader (top): label → callout -->
+          <path d="M 80 48 L 80 32 L 280 32"/>
+          <!-- Total leader (right of total) -->
+          <path d="M 555 60 L 600 60 L 700 60"/>
+          <!-- Bar leader (mid bar) -->
+          <path d="M 480 88 L 600 88 L 700 88"/>
+          <!-- Row label leader -->
+          <path d="M 120 130 L 120 252 L 700 252"/>
+          <!-- Row percent leader -->
+          <path d="M 440 130 L 440 280 L 700 280"/>
+          <!-- Row value leader -->
+          <path d="M 530 130 L 530 308 L 700 308"/>
+          <!-- Dot leader -->
+          <path d="M 67 126 L 30 126 L 30 340 L 700 340"/>
+        </g>
+        <g fill="#54596A" font-family="ui-monospace, monospace" font-size="11">
+          <text x="284" y="35">label · sublabel</text>
+          <text x="704" y="63">total</text>
+          <text x="704" y="91">progress bar · 8px</text>
+          <text x="704" y="255">row label</text>
+          <text x="704" y="283">percent</text>
+          <text x="704" y="311">value</text>
+          <text x="704" y="343">dot-маркер · 8px</text>
+        </g>
+
+        <!-- ============ SPACING DIMENSIONS (left side) ============ -->
+        <g stroke="#5853D9" stroke-width="1" fill="none" opacity="0.5">
+          <!-- label baseline at y=60 → label bottom ~y=70; bar top y=84 (assume 14px diagram == 8px actual, scale for clarity) -->
+          <!-- gap header → bar: label 8px -->
+          <line x1="40" y1="70" x2="40" y2="84" marker-start="url(#anaArrEnd)" marker-end="url(#anaArr)"/>
+          <!-- gap bar → first row: 8px -->
+          <line x1="40" y1="92" x2="40" y2="116" marker-start="url(#anaArrEnd)" marker-end="url(#anaArr)"/>
+          <!-- row min-height: 24px -->
+          <line x1="40" y1="130" x2="40" y2="148" marker-start="url(#anaArrEnd)" marker-end="url(#anaArr)"/>
+        </g>
+        <g fill="#5853D9" font-family="ui-monospace, monospace" font-size="10">
+          <text x="14" y="80">8</text>
+          <text x="14" y="106">8</text>
+          <text x="14" y="142">24</text>
+        </g>
+
+        <!-- ============ BAR DIMENSIONS (above bar) ============ -->
+        <g stroke="#5853D9" stroke-width="1" fill="none" opacity="0.5">
+          <!-- 2px gap between segments — tiny -->
+          <line x1="260" y1="74" x2="262" y2="74" marker-start="url(#anaArrEnd)" marker-end="url(#anaArr)"/>
+        </g>
+        <g fill="#5853D9" font-family="ui-monospace, monospace" font-size="10">
+          <text x="266" y="76">gap 2</text>
+        </g>
+      </svg>
+      <div class="doc-card-note">
+        Размеры в фиолетовом — отступы и высоты в пикселях. Серые выносные линии указывают на элементы компонента.
+        Числовые колонки выровнены по правому краю; tabular-nums гарантирует, что цифры не «прыгают» при смене значения.
+      </div>
+    </div>
+
+    <!-- Props -->
+    <h3 class="doc-h3" id="s-props"><span class="doc-h3-num">1.2</span>Параметры (props)</h3>
+
+    <div class="doc-table-wrap">
+      <table class="doc-table">
+        <thead>
+          <tr><th>Параметр</th><th>Тип</th><th>Обяз.</th><th>Описание</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>label</code></td><td><code>string</code></td><td><span class="req">req</span></td><td>Заголовок (название показателя)</td></tr>
+          <tr><td><code>sublabel</code></td><td><code>string</code></td><td><span class="opt">opt</span></td><td>Подзаголовок (дата, период, уточнение)</td></tr>
+          <tr><td><code>unit</code></td><td><code>string</code></td><td><span class="opt">opt</span></td><td>Единица измерения (млн. руб., шт., %)</td></tr>
+          <tr><td><code>total</code></td><td><code>number</code></td><td><span class="req">req</span></td><td>Итоговое значение</td></tr>
+          <tr><td><code>status</code></td><td><code>"loaded" | "loading" | "error" | "empty"</code></td><td><span class="req">req</span></td><td>Состояние компонента</td></tr>
+          <tr><td><code>showPercent</code></td><td><code>boolean</code></td><td><span class="opt">opt</span></td><td>Показывать % в строках (default: <code>true</code>)</td></tr>
+          <tr><td><code>showProgressBar</code></td><td><code>boolean</code></td><td><span class="opt">opt</span></td><td>Показывать прогресс-бар (default: <code>true</code>)</td></tr>
+          <tr><td><code>maxVisibleItems</code></td><td><code>number</code></td><td><span class="opt">opt</span></td><td>Максимум строк до «Показать ещё» (default: <code>5</code>)</td></tr>
+          <tr><td><code>items[]</code></td><td><code>array</code></td><td><span class="opt">opt</span></td><td>Список позиций (пусто = empty state)</td></tr>
+          <tr><td><code>items[].id</code></td><td><code>string</code></td><td><span class="req">req</span></td><td>Уникальный идентификатор</td></tr>
+          <tr><td><code>items[].label</code></td><td><code>string</code></td><td><span class="req">req</span></td><td>Название позиции</td></tr>
+          <tr><td><code>items[].value</code></td><td><code>number</code></td><td><span class="req">req</span></td><td>Абсолютное значение</td></tr>
+          <tr><td><code>items[].percent</code></td><td><code>number | null</code></td><td><span class="opt">opt</span></td><td><code>null</code> = считать автоматически как <code>value / total</code></td></tr>
+          <tr><td><code>items[].color</code></td><td><code>string | null</code></td><td><span class="opt">opt</span></td><td><code>null</code> = из палитры по порядку</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 2. РЕЖИМЫ ============== -->
+    <h2 class="doc-h2" id="s2"><span class="doc-h2-num">02</span>Режимы отображения</h2>
+    <p class="doc-p">
+      Четыре комбинации флагов <code class="doc-inline-code">showPercent</code> и
+      <code class="doc-inline-code">showProgressBar</code> покрывают разную плотность данных.
+      По умолчанию активны оба — это рекомендуемый режим.
+    </p>
+
+    <div class="doc-grid doc-grid-2">
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-card-title">Полный</div>
+          <div class="doc-card-meta">showPercent: true · showProgressBar: true</div>
+        </div>
+        <div id="ex-mode-full"></div>
+        <div class="doc-card-note">Рекомендуется по умолчанию. Самый информативный вариант.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-card-title">Без процентов</div>
+          <div class="doc-card-meta">showPercent: false · showProgressBar: true</div>
+        </div>
+        <div id="ex-mode-no-pct"></div>
+        <div class="doc-card-note">Когда абсолютные значения важнее долей.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-card-title">Без бара</div>
+          <div class="doc-card-meta">showPercent: true · showProgressBar: false</div>
+        </div>
+        <div id="ex-mode-no-bar"></div>
+        <div class="doc-card-note">Для очень компактных мест или печати.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-card-title">Минимальный</div>
+          <div class="doc-card-meta">showPercent: false · showProgressBar: false</div>
+        </div>
+        <div id="ex-mode-min"></div>
+        <div class="doc-card-note">Текстовая сводка — для ячеек таблиц и плотных списков.</div>
+      </div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 3. КОЛИЧЕСТВО ============== -->
+    <h2 class="doc-h2" id="s3"><span class="doc-h2-num">03</span>Варианты по количеству позиций</h2>
+    <p class="doc-p">
+      Компонент стабилен от 0 до 100+ позиций. Поведение зависит от количества:
+      пустое состояние, обычное отображение, или сворачивание под «Показать ещё».
+    </p>
+
+    <div class="doc-grid doc-grid-2">
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">1 позиция</div><div class="doc-card-meta">items: 1</div></div>
+        <div id="ex-count-1"></div>
+        <div class="doc-card-note">Бар — однородный, занимает 100% ширины. Показывается, чтобы сохранить ритм с другими карточками на дашборде.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">2 позиции</div><div class="doc-card-meta">items: 2</div></div>
+        <div id="ex-count-2"></div>
+        <div class="doc-card-note">Оптимально для бинарных распределений.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">3 позиции</div><div class="doc-card-meta">items: 3</div></div>
+        <div id="ex-count-3"></div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">5 позиций</div><div class="doc-card-meta">items: 5 · граница maxVisibleItems</div></div>
+        <div id="ex-count-5"></div>
+      </div>
+    </div>
+
+    <h4 class="doc-h4">6+ позиций — два решения</h4>
+    <p class="doc-p">
+      При превышении <code class="doc-inline-code">maxVisibleItems</code> возможны две стратегии.
+      <strong>Рекомендуется «Показать ещё»</strong> — она сохраняет всю высоту контекста и
+      понятна при первом взгляде. Внутренний скролл — только если контейнер компонента
+      жёстко ограничен по высоте и нет места для разворота.
+    </p>
+
+    <div class="doc-grid doc-grid-2">
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-card-title">«Показать ещё N» <span class="doc-good">recommended</span></div>
+          <div class="doc-card-meta">items: 8 · maxVisibleItems: 5</div>
+        </div>
+        <div id="ex-count-many"></div>
+        <div class="doc-card-note">Кнопка раскрытия — текстовая, без иконки шеврона. После раскрытия не возвращаемся к свёрнутому виду в этом сеансе.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-card-title">Внутренний скролл <span class="doc-bad">avoid by default</span></div>
+          <div class="doc-card-meta">items: 8 · scrollable: true</div>
+        </div>
+        <div class="demo-scrollable" id="ex-count-scroll"></div>
+        <div class="doc-card-note">Включается только через явный prop <code>scrollable: true</code>. Вложенный скролл вреден: ломает скролл страницы, конфликтует с тач-жестами, прячет важные данные.</div>
+      </div>
+    </div>
+
+    <h4 class="doc-h4">0 позиций — empty state</h4>
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title">items: [] или undefined</div><div class="doc-card-meta">status: "empty"</div></div>
+      <div id="ex-state-empty"></div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 4. СОСТОЯНИЯ ============== -->
+    <h2 class="doc-h2" id="s4"><span class="doc-h2-num">04</span>Состояния компонента</h2>
+    <p class="doc-p">
+      Состояние — это атомарный <code class="doc-inline-code">status</code> + три производных
+      от данных: <code class="doc-inline-code">partial</code> (сумма позиций &lt; total),
+      <code class="doc-inline-code">overflow</code> (сумма &gt; total),
+      <code class="doc-inline-code">zero item</code> (позиция со значением 0).
+    </p>
+
+    <div class="doc-grid doc-grid-2">
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Loaded</div><div class="doc-card-meta">status: "loaded"</div></div>
+        <div id="ex-state-loaded"></div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Loading — fast (&lt; 3 сек)</div><div class="doc-card-meta">status: "loading"</div></div>
+        <div id="ex-state-loading"></div>
+        <div class="doc-card-note">Полный скелетон: total, бар и строки. Используется при коротких ожиданиях (до 3 секунд) — не отвлекает пользователя текстовыми пояснениями.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Loading — slow (≥ 3 сек)</div><div class="doc-card-meta">loadingVariant: "slow"</div></div>
+        <div id="ex-state-loading-slow"></div>
+        <div class="doc-card-note">Когда вычисление дольше 3 секунд — скелетоны только у total и прогресс-бара, а вместо строк появляется плашка «Данные рассчитываются · Это может занять несколько секунд». Так пользователь понимает, что ожидание оправдано.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Error</div><div class="doc-card-meta">status: "error"</div></div>
+        <div id="ex-state-error"></div>
+        <div class="doc-card-note">Иконка + краткое сообщение + кнопка «Повторить». Не показываем стек или код ошибки в UI.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Empty</div><div class="doc-card-meta">status: "empty"</div></div>
+        <div id="ex-state-empty-2"></div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Partial (сумма &lt; total)</div><div class="doc-card-meta">25 + 25 + 25 = 75%</div></div>
+        <div id="ex-state-partial"></div>
+        <div class="doc-card-note">Остаток показывается серым «остатком» в баре, в подвале — поясняющий текст.</div>
+      </div>
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Overflow (сумма &gt; total)</div><div class="doc-card-meta">50 + 40 + 25 = 115%</div></div>
+        <div id="ex-state-overflow"></div>
+        <div class="doc-card-note">В подвале — предупреждение. Бар нормализуется по сумме, но цвет подвала сигнализирует о проблеме.</div>
+      </div>
+    </div>
+
+    <div class="doc-card" style="margin-top: 16px;">
+      <div class="doc-card-header"><div class="doc-card-title">Zero item (одна из позиций = 0)</div><div class="doc-card-meta">item.value: 0</div></div>
+      <div id="ex-state-zero"></div>
+      <div class="doc-card-note">Позиция отображается, но в баре её сегмент не виден. Это нормально: пользователь видит, что показатель учтён, но равен нулю.</div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 5. ЦВЕТА ============== -->
+    <h2 class="doc-h2" id="s5"><span class="doc-h2-num">05</span>Цветовая система</h2>
+    <p class="doc-p">
+      Палитра из <strong>8 цветов</strong>, оптимизированных для соседства в одном баре.
+      Цвета подобраны с одинаковой светлотой и насыщенностью — ни один не «доминирует»
+      визуально. Контраст с белым фоном — не менее 3:1 (WCAG AA для non-text графики).
+    </p>
+
+    <div class="doc-palette">
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#7C7AED"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">01</div><div class="doc-swatch-name">Indigo</div><div class="doc-swatch-hex">#7C7AED</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#6CC36E"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">02</div><div class="doc-swatch-name">Mint</div><div class="doc-swatch-hex">#6CC36E</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#5FB8D6"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">03</div><div class="doc-swatch-name">Sky</div><div class="doc-swatch-hex">#5FB8D6</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#E87B6F"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">04</div><div class="doc-swatch-name">Coral</div><div class="doc-swatch-hex">#E87B6F</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#E8B85F"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">05</div><div class="doc-swatch-name">Amber</div><div class="doc-swatch-hex">#E8B85F</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#DE7BAE"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">06</div><div class="doc-swatch-name">Pink</div><div class="doc-swatch-hex">#DE7BAE</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#4FB8A8"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">07</div><div class="doc-swatch-name">Teal</div><div class="doc-swatch-hex">#4FB8A8</div></div></div>
+      <div class="doc-swatch"><div class="doc-swatch-color" style="background:#8896A8"></div><div class="doc-swatch-meta"><div class="doc-swatch-num">08</div><div class="doc-swatch-name">Slate</div><div class="doc-swatch-hex">#8896A8</div></div></div>
+    </div>
+
+    <h4 class="doc-h4">Правила назначения</h4>
+    <p class="doc-p">
+      Цвет берётся по индексу позиции: первая позиция → Indigo, вторая → Mint, и т. д.
+      Это значит, что у одной и той же сущности (например, «Кредит») цвет может отличаться
+      в разных виджетах — это <em>намеренно</em>. Если консистентность важна, передавайте
+      <code class="doc-inline-code">items[].color</code> явно.
+    </p>
+
+    <h4 class="doc-h4">Поведение при 9+ позициях</h4>
+    <p class="doc-p">
+      Палитра не циклится. С 9-й позиции включается стратегия group-into-other:
+      девятая и далее объединяются в одну виртуальную позицию «Прочее» цвета Slate (08).
+      Это сохраняет визуальную читаемость бара и предотвращает повторение цветов.
+    </p>
+
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title">Все 8 цветов в одном баре</div><div class="doc-card-meta">items: 8</div></div>
+      <div id="ex-palette-full"></div>
+    </div>
+
+    <h4 class="doc-h4">Тёмная тема</h4>
+    <div class="doc-card doc-dark-bg" style="background:#15171E;">
+      <div class="doc-card-header"><div class="doc-card-title" style="color:#E8EAF0">Same palette, dark surface</div><div class="doc-card-meta" style="color:#8A8F9E">.sbw-dark wrapper</div></div>
+      <div class="sbw-dark" id="ex-palette-dark"></div>
+      <div class="doc-card-note" style="color:#8A8F9E;border-color:#2A2D38">Цвета палитры не инвертируются — они работают на обеих темах. Меняются только нейтрали: фон, текст, бордеры.</div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 6. ПРОГРЕСС-БАР ============== -->
+    <h2 class="doc-h2" id="s6"><span class="doc-h2-num">06</span>Поведение прогресс-бара</h2>
+
+    <h4 class="doc-h4">Минимальная ширина сегмента</h4>
+    <p class="doc-p">
+      Сегмент менее 2px невозможно различить на экране. Через ResizeObserver компонент
+      гарантирует <code class="doc-inline-code">min-width: 2px</code> для каждого ненулевого
+      сегмента — остаток ширины распределяется пропорционально между остальными.
+    </p>
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title">Доминирующая позиция 99,7%</div><div class="doc-card-meta">бывший «малый» сегмент остаётся видимым</div></div>
+      <div id="ex-bar-tiny"></div>
+    </div>
+
+    <h4 class="doc-h4">Скругления, gap, hover-связь</h4>
+    <ul class="doc-p" style="padding-left: 20px;">
+      <li><strong>Скругление:</strong> <code class="doc-inline-code">border-radius: 999px</code> на контейнере, сегменты обрезаются через <code class="doc-inline-code">overflow: hidden</code>. Первый и последний сегменты получают скругление автоматически.</li>
+      <li><strong>Gap:</strong> 2px между сегментами — даёт визуальное разделение без потери компактности.</li>
+      <li><strong>Hover-связь:</strong> при наведении на сегмент остальные приглушаются (<code class="doc-inline-code">opacity: 0.55</code>), при наведении на строку — приглушаются все сегменты кроме связанного.</li>
+      <li><strong>Tooltip:</strong> по <code class="doc-inline-code">title</code> атрибуту — на нативном механизме браузера. В сложных лейаутах можно подключить кастомный tooltip-компонент.</li>
+    </ul>
+
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title">Hover: попробуйте навести на сегмент или строку</div><div class="doc-card-meta">items: 3</div></div>
+      <div id="ex-bar-three"></div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 7. АДАПТИВНОСТЬ ============== -->
+    <h2 class="doc-h2" id="s7"><span class="doc-h2-num">07</span>Адаптивность и контейнерные ограничения</h2>
+
+    <div class="doc-callout doc-callout-info">
+      <span class="doc-callout-icon">i</span>
+      <div>
+        <strong>Компонент адаптируется к ширине своего контейнера, а не вьюпорта.</strong>
+        Это значит, что один и тот же виджет на широком экране в узком сайдбаре
+        ведёт себя как на мобильном — он «знает» сколько у него места локально.
+        Реализуется через <code class="doc-inline-code">container-type: inline-size</code>
+        и CSS Container Queries; для пересчёта ширины сегментов бара —
+        <code class="doc-inline-code">ResizeObserver</code>.
+      </div>
+    </div>
+
+    <!-- 7.1 -->
+    <h3 class="doc-h3" id="s71"><span class="doc-h3-num">7.1</span>Адаптивность по ширине</h3>
+    <p class="doc-p">
+      Четыре контейнерных брейкпоинта: <strong>широкий</strong> (&gt; 480px),
+      <strong>средний</strong> (320–480px), <strong>узкий</strong> (&lt; 320px),
+      <strong>деградация</strong> (&lt; 160px).
+    </p>
+
+    <!-- wide -->
+    <h4 class="doc-h4">Широкий — &gt; 480px (базовый вид)</h4>
+    <div class="doc-container-box" style="width: 540px; max-width: 100%;">
+      <div class="doc-container-tag">container: 540px</div>
+      <div id="ex-w-wide"></div>
+    </div>
+    <p class="doc-p" style="margin-top: 12px;">
+      Всё отображается: label · percent · value в одной строке, числа выровнены
+      по правому краю, dot-маркер 8px, total 18px.
+    </p>
+
+    <!-- mid -->
+    <h4 class="doc-h4">Средний — 320–480px (компактный)</h4>
+    <div class="doc-container-box" style="width: 400px; max-width: 100%;">
+      <div class="doc-container-tag">container: 400px</div>
+      <div id="ex-w-mid"></div>
+    </div>
+    <ul class="doc-p" style="padding-left: 20px; margin-top: 12px;">
+      <li>Long-label позиций обрезаются с <code class="doc-inline-code">...</code> + tooltip при hover</li>
+      <li>Total уменьшается до 16px, шрифт строк — до 13px</li>
+      <li>Колонки <code class="doc-inline-code">percent</code> и <code class="doc-inline-code">value</code> сближаются (min-width: 56 / 64px)</li>
+      <li>Unit можно сократить (передаётся в prop как короткая строка)</li>
+    </ul>
+
+    <!-- narrow -->
+    <h4 class="doc-h4">Узкий — &lt; 320px</h4>
+    <div class="doc-container-box" style="width: 280px; max-width: 100%;">
+      <div class="doc-container-tag">container: 280px</div>
+      <div id="ex-w-narrow"></div>
+    </div>
+    <ul class="doc-p" style="padding-left: 20px; margin-top: 12px;">
+      <li>Колонка <code class="doc-inline-code">percent</code> скрывается принудительно</li>
+      <li>Прогресс-бар сохраняет базовую высоту 8px — никогда не утончается</li>
+      <li>Строки переходят в двухстрочный режим: label сверху, value снизу</li>
+      <li>Total — 15px</li>
+    </ul>
+
+    <!-- very narrow -->
+    <h4 class="doc-h4">Очень узкий — &lt; 200px</h4>
+    <div class="doc-container-box" style="width: 200px; max-width: 100%;">
+      <div class="doc-container-tag">container: 200px</div>
+      <div id="ex-w-tiny"></div>
+    </div>
+    <p class="doc-p" style="margin-top: 12px;">
+      Видны только label и total. Детализация сворачивается за триггером «Развернуть» —
+      разворачивается в всплывающий попап (controlled через
+      <code class="doc-inline-code">aria-expanded</code>).
+    </p>
+
+    <h4 class="doc-h4">Деградация — &lt; 160px</h4>
+    <div class="doc-container-box" style="width: 160px; max-width: 100%;">
+      <div class="doc-container-tag">container: 160px</div>
+      <div>
+        <div class="sbw-host" data-status="loaded" style="container-type: inline-size;">
+          <div class="sbw">
+            <div class="sbw-header" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+              <div class="sbw-label" style="font-size: 11px;">ВБС по сделке</div>
+              <div class="sbw-total" style="font-size: 18px;">1 279</div>
+            </div>
+            <a href="#" style="font-size: 11px; color: var(--doc-accent); text-decoration: none;">↗ Подробнее</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="doc-p" style="margin-top: 12px;">
+      Граница graceful degradation. Ниже 160px компонент <strong>не должен использоваться</strong> —
+      покажите вместо него только total как число или замените на другой компонент.
+    </p>
+
+    <div class="doc-callout doc-callout-warn">
+      <span class="doc-callout-icon">!</span>
+      <div>
+        <strong>Что остаётся обязательным на любом размере:</strong> total и label заголовка.
+        Это «ядро» компонента — никогда не скрывается.
+      </div>
+    </div>
+
+    <!-- 7.2 height -->
+    <h3 class="doc-h3" id="s72"><span class="doc-h3-num">7.2</span>Адаптивность по высоте — ограниченный контейнер</h3>
+    <p class="doc-p">
+      Реальный кейс: виджет помещён в карточку с фиксированной высотой, и список позиций
+      не помещается. Поведение зависит от того, насколько сильно ограничен контейнер.
+    </p>
+
+    <h4 class="doc-h4">Сценарий A — контейнер чуть меньше нужного</h4>
+    <p class="doc-p">
+      1–2 строки не влезают. Снизу появляется fade-градиент,
+      затухание подсказывает что контент продолжается. Под fade — ссылка «Ещё N позиций».
+    </p>
+    <div class="doc-container-box">
+      <div class="doc-container-tag">height: 140px · item count: 8</div>
+      <div class="sbw-host" data-height="A" id="ex-h-a"></div>
+      <a href="#" style="position: relative; top: -16px; font-size: 12px; color: var(--doc-accent); padding-left: 4px;">Ещё 4 позиции →</a>
+    </div>
+
+    <h4 class="doc-h4">Сценарий B — влезает только заголовок + бар</h4>
+    <p class="doc-p">
+      Детализация полностью скрыта. На прогресс-бар при hover — tooltip с
+      мини-списком всех позиций (label + %).
+    </p>
+    <div class="doc-container-box">
+      <div class="doc-container-tag">height: 70px</div>
+      <div class="sbw-host" data-height="B" id="ex-h-b"></div>
+    </div>
+
+    <h4 class="doc-h4">Сценарий C — не влезает даже бар</h4>
+    <p class="doc-p">
+      Показываются только label + total. Если контейнер ниже 60px — компонент рендерит
+      заглушку с иконкой; ниже 48px компонент <strong>не должен использоваться</strong>.
+    </p>
+    <div class="doc-container-box">
+      <div class="doc-container-tag">height: 48px</div>
+      <div class="sbw-host" data-height="C" id="ex-h-c"></div>
+    </div>
+
+    <div class="doc-callout doc-callout-info">
+      <span class="doc-callout-icon">i</span>
+      <div>
+        <strong>Иерархия приоритетов при ограничении высоты:</strong><br>
+        <code class="doc-inline-code">total</code> — никогда не обрезается ·
+        <code class="doc-inline-code">bar</code> — может исчезнуть вторым ·
+        <code class="doc-inline-code">items</code> — исчезают первыми
+      </div>
+    </div>
+
+    <!-- 7.3 stretch -->
+    <h3 class="doc-h3" id="s73"><span class="doc-h3-num">7.3</span>Поведение при растяжении</h3>
+    <p class="doc-p">
+      Когда компонент попадает в «резиновую» сетку, у него есть рекомендация
+      <code class="doc-inline-code">max-width: 600px</code>. Это не жёсткое ограничение —
+      разработчик может его переопределить, но дефолт защищает от антипаттерна
+      бесконечно растянутых строк.
+    </p>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title">Правильно <span class="doc-good">good</span></div>
+        <div class="doc-card-meta">бар + total — full width · список ограничен 600px</div>
+      </div>
+      <div style="background: var(--doc-surface-2); padding: 24px; border-radius: 8px;">
+        <div class="sbw-stretch" id="ex-stretch-good"></div>
+      </div>
+      <div class="doc-card-note">Прогресс-бар и total занимают всю ширину контейнера — они хорошо считываются на любом размере. Список параметров ограничен 600px от левого края, поэтому лейбл и значение остаются рядом. Hover-фон строки заливает всю ширину, текст внутри не разъезжается.</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title">Антипаттерн <span class="doc-bad">avoid</span></div>
+        <div class="doc-card-meta">всё растянуто на 100%</div>
+      </div>
+      <div style="background: var(--doc-surface-2); padding: 24px; border-radius: 8px;">
+        <div style="--sbw-max-width: 100%;" id="ex-stretch-bad"></div>
+      </div>
+      <div class="doc-card-note">Строки тоже растянуты — значение «511,60» далеко справа от лейбла «Кредит», связь визуально разрывается.</div>
+    </div>
+
+    <!-- 7.4 layouts -->
+    <h3 class="doc-h3" id="s74"><span class="doc-h3-num">7.4</span>Компонент в специфических лейаутах</h3>
+
+    <h4 class="doc-h4">В сайдбаре (~240px)</h4>
+    <p class="doc-p">
+      Один из самых частых кейсов. Прогресс-бар занимает всю ширину; label и value —
+      двухстрочный режим; <code class="doc-inline-code">maxVisibleItems: 3</code>,
+      остальные — «Ещё N».
+    </p>
+    <div class="demo-sidebar" id="ex-sidebar"></div>
+
+    <h4 class="doc-h4">В модальном окне</h4>
+    <p class="doc-p">
+      Модалка может ресайзиться пользователем — компонент перестраивается через
+      Container Queries автоматически. Показано на двух типичных ширинах:
+    </p>
+    <div class="doc-grid doc-grid-2">
+      <div class="demo-modal" style="width: 360px;">
+        <div class="demo-modal-bar"><span></span><span></span><span></span></div>
+        <div id="ex-modal-360"></div>
+      </div>
+      <div class="demo-modal" style="width: 100%;">
+        <div class="demo-modal-bar"><span></span><span></span><span></span></div>
+        <div id="ex-modal-640"></div>
+      </div>
+    </div>
+
+    <h4 class="doc-h4">В коллапсируемой секции (аккордеон)</h4>
+    <p class="doc-p">
+      Когда секция закрыта — компонент не рендерится (или рендерится с
+      <code class="doc-inline-code">visibility: hidden</code>, чтобы быть доступным для
+      screen reader). После открытия ResizeObserver пересчитает ширину сегментов
+      на следующем кадре.
+    </p>
+    <div class="demo-accordion">
+      <div class="demo-accordion-head" onclick="this.parentElement.querySelector('.demo-accordion-body').style.display = this.parentElement.querySelector('.demo-accordion-body').style.display === 'none' ? 'block' : 'none'">
+        <span>Детализация ВБС</span><span style="color: var(--doc-fg-faint)">▾</span>
+      </div>
+      <div class="demo-accordion-body" id="ex-accordion"></div>
+    </div>
+
+    <!-- 7.5 dynamic -->
+    <h3 class="doc-h3" id="s75"><span class="doc-h3-num">7.5</span>Поведение при динамическом изменении размера</h3>
+    <p class="doc-p">
+      Реальный кейс: пользователь двигает сплиттер между панелями. Компонент должен
+      плавно перестраиваться без мерцания.
+    </p>
+    <ul class="doc-p" style="padding-left: 20px;">
+      <li>Пересчёт ширины сегментов — через <code class="doc-inline-code">ResizeObserver</code>, не через <code class="doc-inline-code">resize</code>-event окна</li>
+      <li><strong>Структурные изменения</strong> (скрытие колонки, двухстрочный режим) — мгновенно, без transition</li>
+      <li><strong>Размерные изменения</strong> (font-size, dot, padding) — <code class="doc-inline-code">transition: 150ms ease</code></li>
+      <li>Пока ResizeObserver ещё не сработал — рендерится промежуточное состояние с <code class="doc-inline-code">visibility: hidden</code> на баре, total и заголовок видны сразу</li>
+    </ul>
+    <div class="doc-callout doc-callout-ok">
+      <span class="doc-callout-icon">✓</span>
+      <div>Попробуйте сами: в интерактивном демо ниже двигайте ползунок ширины — увидите, как компонент проходит все брейкпоинты.</div>
+    </div>
+
+    <!-- 7.6 content -->
+    <h3 class="doc-h3" id="s76"><span class="doc-h3-num">7.6</span>Контентно-зависимые ограничения</h3>
+
+    <h4 class="doc-h4">Очень длинный sublabel</h4>
+    <div class="doc-card">
+      <div id="ex-content-long-sub"></div>
+      <div class="doc-card-note">Sublabel — одна строка, обрезается с <code>...</code>. Полный текст доступен через title-tooltip. Перенос в две строки <strong>не используется</strong> — нарушает вертикальный ритм.</div>
+    </div>
+
+    <h4 class="doc-h4">Очень большое число в total</h4>
+    <div class="doc-card">
+      <div id="ex-content-big-num"></div>
+      <div class="doc-card-note">
+        Числа выше 999 999 999 — переходим на компактный формат через <code class="doc-inline-code">SummaryBreakdown.fmtCompact()</code>:
+        <code>1,5 млрд</code> вместо <code>1 500 000 000</code>. Шрифт total использует
+        <code class="doc-inline-code">clamp(15px, 1.4cqi + 8px, 22px)</code> — fluid typography от ширины контейнера.
+        Включается через prop <code class="doc-inline-code">format: "compact"</code>.
+      </div>
+    </div>
+
+    <h4 class="doc-h4">Смешанные длины label у позиций</h4>
+    <div class="doc-card">
+      <div id="ex-content-mixed-len"></div>
+      <div class="doc-card-note">Колонка label обрезается по доступной ширине, не растягиваясь под самый длинный лейбл. Числовые колонки всегда выровнены по правому краю.</div>
+    </div>
+
+    <!-- 7.7 a11y -->
+    <h3 class="doc-h3" id="s77"><span class="doc-h3-num">7.7</span>Accessibility при ограниченных размерах</h3>
+    <ul class="doc-p" style="padding-left: 20px;">
+      <li>Скрытые через <code class="doc-inline-code">overflow</code> элементы доступны screen reader — используется <code class="doc-inline-code">visibility: hidden</code> или <code class="doc-inline-code">aria-hidden="false"</code>; <strong>не</strong> <code class="doc-inline-code">display: none</code> для строк под fade-градиентом</li>
+      <li>Триггер сворачивания/разворачивания имеет <code class="doc-inline-code">aria-expanded</code> и <code class="doc-inline-code">aria-controls</code></li>
+      <li>Прогресс-бар имеет <code class="doc-inline-code">role="img"</code> и <code class="doc-inline-code">aria-label</code> с текстовой сводкой всех позиций</li>
+      <li>Tooltip при hover дублируется при focus — клавиатурный доступ обязателен</li>
+      <li>Touch-таргеты («Показать ещё», иконка expand) — минимум 44×44px даже в самом узком контейнере</li>
+      <li>Сегменты бара не являются интерактивными элементами по умолчанию — это decorative graphics; для интерактивности оборачивайте в <code class="doc-inline-code">&lt;button&gt;</code></li>
+    </ul>
+
+    <!-- ============== INTERACTIVE DEMO ============== -->
+    <h3 class="doc-h3" id="s-demo"><span class="doc-h3-num">★</span>Интерактивный демо</h3>
+    <p class="doc-p">
+      Двигайте ползунок ширины — или потяните за правый край контейнера —
+      чтобы увидеть, как компонент проходит брейкпоинты в реальном времени.
+    </p>
+
+    <div class="demo-resize">
+      <div class="demo-resize-controls">
+        <label>width <input id="demo-range" type="range" min="120" max="800" value="560" step="1"></label>
+        <label><input id="demo-num" type="number" min="120" max="800" value="560"> px</label>
+        <label>items <select id="demo-count">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+          <option value="8">8</option>
+        </select></label>
+        <label style="display: flex; gap: 6px; align-items: center; font-family: var(--doc-mono);">
+          <input id="demo-partial" type="checkbox"> partial (неучтено)
+        </label>
+        <label style="display: flex; gap: 6px; align-items: center; font-family: var(--doc-mono);">
+          <input id="demo-height-on" type="checkbox"> ограничить высоту
+        </label>
+        <label>height <input id="demo-height-range" type="range" min="48" max="500" value="200" step="1" disabled></label>
+        <label><input id="demo-height-num" type="number" min="48" max="500" value="200" disabled> px</label>
+        <label>при переполнении <select id="demo-overflow-mode" disabled>
+          <option value="fade">fade + «ещё N»</option>
+          <option value="scroll">скролл внутри</option>
+          <option value="expand">кнопка «развернуть»</option>
+        </select></label>
+      </div>
+      <div class="demo-resize-stage">
+        <div class="demo-resize-frame sbw-stretch" id="demo-frame" data-width="560" style="width: 560px;"></div>
+      </div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 8. ЧИСЛА И ТИПОГРАФИКА ============== -->
+    <h2 class="doc-h2" id="s8"><span class="doc-h2-num">08</span>Числовой формат и типографика</h2>
+
+    <h4 class="doc-h4">Числа</h4>
+    <ul class="doc-p" style="padding-left: 20px;">
+      <li>Разделитель тысяч — неразрывный пробел (<code class="doc-inline-code">U+00A0</code>): <code>1 279</code></li>
+      <li>Десятичный разделитель — запятая: <code>511,60</code></li>
+      <li>Проценты — всегда 2 знака после запятой: <code>35,00%</code></li>
+      <li>Total — без дробной части (округление до целого), если total &lt; 1 — два знака</li>
+      <li>Все цифры — <code class="doc-inline-code">font-variant-numeric: tabular-nums</code></li>
+      <li>Локаль: <code class="doc-inline-code">ru-RU</code> через <code class="doc-inline-code">Intl.NumberFormat</code></li>
+    </ul>
+
+    <h4 class="doc-h4">Типографика</h4>
+    <div class="doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Элемент</th><th>Размер</th><th>Вес</th><th>Цвет</th></tr></thead>
+        <tbody>
+          <tr><td>label</td><td>13px</td><td>400</td><td><code>#54596A</code></td></tr>
+          <tr><td>sublabel</td><td>11px</td><td>400</td><td><code>#8A8F9E</code></td></tr>
+          <tr><td>total</td><td>18px → 22px (fluid)</td><td>700</td><td><code>#1B1D24</code></td></tr>
+          <tr><td>unit</td><td>12px</td><td>400</td><td><code>#8A8F9E</code></td></tr>
+          <tr><td>row label</td><td>14px → 13px</td><td>400</td><td><code>#1B1D24</code></td></tr>
+          <tr><td>row percent</td><td>14px → 13px</td><td>400</td><td><code>#54596A</code></td></tr>
+          <tr><td>row value</td><td>14px → 13px</td><td>400</td><td><code>#1B1D24</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 9. КОРНЕР-КЕЙСЫ ============== -->
+    <h2 class="doc-h2" id="s9"><span class="doc-h2-num">09</span>Корнер-кейсы</h2>
+
+    <div class="doc-grid doc-grid-2">
+
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Контейнер 0px при старте</div><div class="doc-card-meta">контейнер: 0 → ResizeObserver</div></div>
+        <div style="width: 220px; margin: 0 auto;">
+          <div id="ex-corner-zero"></div>
+        </div>
+        <div class="doc-card-note">Компонент рендерит skeleton с <code>visibility: hidden</code>; ResizeObserver сработает на первом ненулевом ресайзе и нормально пересчитает сегменты бара.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Total = 0, items не пусты</div><div class="doc-card-meta">total: 0 · values &gt; 0</div></div>
+        <div id="ex-corner-zero-total"></div>
+        <div class="doc-card-note">Если values ненулевые — partial/overflow в зависимости от суммы percent. <strong>Если все values = 0 — автоматически empty state</strong> (это эквивалент отсутствия данных).</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Total отрицательное</div><div class="doc-card-meta">total: −500</div></div>
+        <div id="ex-corner-negative"></div>
+        <div class="doc-card-note">Допустимо. Бар не рендерится, проценты показываются. В подвале — поясняющий текст.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">item.percent есть, item.value — нет</div><div class="doc-card-meta">status: "error"</div></div>
+        <div id="ex-corner-bad-data"></div>
+        <div class="doc-card-note">Считается ошибкой данных — компонент уходит в <code>error</code>.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Дубликаты id у позиций</div><div class="doc-card-meta">console.warn</div></div>
+        <div id="ex-corner-dupes"></div>
+        <div class="doc-card-note">Компонент рендерится с предупреждением в <code>console.warn</code>. Hover-связь работает только для первого вхождения.</div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-card-header"><div class="doc-card-title">Очень много позиций (50+)</div><div class="doc-card-meta">items: 50 · maxVisibleItems: 5</div></div>
+        <div id="ex-corner-many"></div>
+        <div class="doc-card-note">Список сокращается до maxVisibleItems, остальные — «Показать ещё N». В баре всё равно отрисовываются все сегменты (с учётом min-width 2px) — это намеренно: даёт визуальный «отпечаток» распределения.</div>
+      </div>
+
+    </div>
+
+    <div class="doc-callout doc-callout-info" style="margin-top: 16px;">
+      <span class="doc-callout-icon">i</span>
+      <div><strong>Анимированный фон родителя.</strong> ResizeObserver реагирует на изменения ширины — может вызвать частые пересчёты. Решение: пересчёт через <code class="doc-inline-code">requestAnimationFrame</code> с дебаунсом 16ms. Визуально это никак не проявляется — техническое замечание для разработчика.</div>
+    </div>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 10. JSON ============== -->
+    <h2 class="doc-h2" id="s10"><span class="doc-h2-num">10</span>JSON-структура данных</h2>
+<pre class="doc-pre"><span class="tk-com">// Минимальный пример</span>
+{
+  <span class="tk-key">"label"</span>: <span class="tk-str">"ВБС по сделке на 25.02.2026, млн. руб."</span>,
+  <span class="tk-key">"sublabel"</span>: <span class="tk-str">"25.02.2026"</span>,
+  <span class="tk-key">"unit"</span>: <span class="tk-str">"млн. руб."</span>,
+  <span class="tk-key">"total"</span>: <span class="tk-num">1279</span>,
+  <span class="tk-key">"status"</span>: <span class="tk-str">"loaded"</span>,
+  <span class="tk-key">"showPercent"</span>: <span class="tk-num">true</span>,
+  <span class="tk-key">"showProgressBar"</span>: <span class="tk-num">true</span>,
+  <span class="tk-key">"maxVisibleItems"</span>: <span class="tk-num">5</span>,
+  <span class="tk-key">"items"</span>: [
+    {
+      <span class="tk-key">"id"</span>: <span class="tk-str">"kr"</span>,
+      <span class="tk-key">"label"</span>: <span class="tk-str">"Кредит"</span>,
+      <span class="tk-key">"value"</span>: <span class="tk-num">511.60</span>,
+      <span class="tk-key">"percent"</span>: <span class="tk-num">35</span>,
+      <span class="tk-key">"color"</span>: <span class="tk-num">null</span>
+    },
+    {
+      <span class="tk-key">"id"</span>: <span class="tk-str">"ak"</span>,
+      <span class="tk-key">"label"</span>: <span class="tk-str">"Акции"</span>,
+      <span class="tk-key">"value"</span>: <span class="tk-num">511.60</span>,
+      <span class="tk-key">"percent"</span>: <span class="tk-num">35</span>,
+      <span class="tk-key">"color"</span>: <span class="tk-num">null</span>
+    }
+  ]
+}</pre>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 11. CHECKLIST ============== -->
+    <h2 class="doc-h2" id="s11"><span class="doc-h2-num">11</span>Checklist для разработчика</h2>
+
+    <ul class="doc-checklist">
+      <li><div>Компонент использует <strong>Container Queries</strong>, не Media Queries</div></li>
+      <li><div><strong>ResizeObserver</strong> подключён для динамического ресайза сегментов бара</div></li>
+      <li><div>При ширине &lt; 320px проценты скрываются <strong>автоматически</strong></div></li>
+      <li><div>При overflow контейнера по высоте — появляется fade + «Ещё N»</div></li>
+      <li><div><code>total</code> никогда не обрезается и не скрывается</div></li>
+      <li><div>Прогресс-бар пересчитывает сегменты <strong>после</strong> того как контейнер стал видим</div></li>
+      <li><div>Все скрытые элементы (под fade, в свёрнутом списке) доступны через screen reader</div></li>
+      <li><div>Числа форматируются через <code>Intl.NumberFormat('ru-RU')</code>, не вручную</div></li>
+      <li><div>Цвета берутся из палитры по индексу; 9-я позиция и далее → «Прочее»</div></li>
+      <li><div>Минимальная ширина сегмента бара — 2px (через ResizeObserver-постпроцессинг)</div></li>
+      <li><div>Состояния loading / error / empty имеют отдельные визуальные ветки, не overlay поверх loaded</div></li>
+      <li><div>Hover на сегменте бара или строке — двунаправленная связка через <code>opacity</code></div></li>
+      <li><div>Touch-таргеты ≥ 44×44px (включая «Показать ещё» и expand-триггер)</div></li>
+      <li><div>Локаль форматирования передаётся как prop, дефолт — <code>ru-RU</code></div></li>
+    </ul>
+
+    <hr class="doc-rule">
+
+    <!-- ============== 12. OUT OF SCOPE ============== -->
+    <h2 class="doc-h2" id="s12"><span class="doc-h2-num">12</span>Что намеренно НЕ входит в компонент</h2>
+    <p class="doc-p">
+      Чтобы оставаться универсальным и простым, компонент не делает следующее.
+      Если вашему сценарию это нужно — оборачивайте Summary Breakdown в композитный
+      компонент уровня вашей продуктовой команды, не модифицируйте сам виджет.
+    </p>
+
+    <div class="doc-table-wrap">
+      <table class="doc-table">
+        <thead><tr><th>Не входит</th><th>Где это сделать</th></tr></thead>
+        <tbody>
+          <tr><td>Drill-down (клик по позиции открывает детализацию)</td><td>Оборачивающий компонент — навешивает onClick на строки</td></tr>
+          <tr><td>Редактирование значений inline</td><td>Отдельный edit-mode компонент; этот — read-only</td></tr>
+          <tr><td>Экспорт (CSV/XLSX/PDF)</td><td>Action-bar родительской карточки</td></tr>
+          <tr><td>Сортировка пользователем</td><td>Передавайте уже отсортированный массив в <code>items[]</code></td></tr>
+          <tr><td>Фильтрация позиций</td><td>На уровне источника данных</td></tr>
+          <tr><td>Сравнение нескольких периодов (delta)</td><td>Используйте отдельный компонент Trend / Delta Indicator</td></tr>
+          <tr><td>Drag-and-drop порядок позиций</td><td>Не предусмотрено — компонент read-only</td></tr>
+          <tr><td>Анимация при изменении значений (counter rolling)</td><td>Не предусмотрено по умолчанию — может добавляться как opt-in prop</td></tr>
+          <tr><td>Локализация дат, валют</td><td>Передавайте уже отформатированные <code>label</code>, <code>sublabel</code>, <code>unit</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr class="doc-rule" style="margin-bottom: 32px;">
+
+    <footer style="color: var(--doc-fg-faint); font-size: 12px; margin-top: 24px;">
+      <div>Summary Breakdown · v1.0 · Generic data-viz component</div>
+      <div>Design System internal documentation · Russian locale</div>
+    </footer>
+
+  </main>
+</div>
+
+<script src="widget.js"></script>
+<script src="spec.js"></script>
+</body>
+</html>

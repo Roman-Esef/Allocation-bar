@@ -1,0 +1,416 @@
+/* ============================================================
+   SummaryBreakdown — component styles
+   Container Queries drive all adaptive behaviour.
+   The host element MUST have container-type: inline-size.
+   ============================================================ */
+
+.sbw-host {
+  container-type: inline-size;
+  container-name: sbw;
+  font-family: var(--sbw-font, "Helvetica Neue", Helvetica, Arial, sans-serif);
+  color: var(--sbw-fg, #1B1D24);
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.sbw {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: var(--sbw-max-width, 600px);
+}
+
+/* ----- header ----- */
+.sbw-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  justify-content: space-between;
+}
+.sbw-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.sbw-label {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--sbw-fg-muted, #54596A);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sbw-sublabel {
+  font-size: 11px;
+  color: var(--sbw-fg-faint, #8A8F9E);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sbw-total {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.sbw-total .sbw-unit {
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--sbw-fg-faint, #8A8F9E);
+  margin-left: 2px;
+}
+.sbw-total-empty { color: var(--sbw-fg-faint, #8A8F9E); font-weight: 400; }
+
+/* ----- bar ----- */
+.sbw-bar {
+  display: flex;
+  height: 8px;
+  flex: 0 0 8px;
+  min-height: 8px;
+  max-height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  gap: 2px;
+  background: var(--sbw-track, #EFF1F5);
+  isolation: isolate;
+}
+.sbw-seg {
+  height: 100%;
+  flex: 0 0 0;
+  min-width: 2px;
+  transition: filter .15s ease, opacity .15s ease;
+}
+.sbw-seg-rest {
+  background: var(--sbw-track, #EFF1F5) !important;
+}
+
+/* ----- list ----- */
+.sbw-list {
+  display: flex;
+  flex-direction: column;
+}
+.sbw-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  min-height: 24px;
+}
+.sbw-row + .sbw-row {
+  border-top: 1px solid var(--sbw-divider, transparent);
+}
+.sbw-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  justify-self: center;
+}
+.sbw-row-label {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--sbw-fg, #1B1D24);
+}
+.sbw-row-percent {
+  font-variant-numeric: tabular-nums;
+  color: var(--sbw-fg-muted, #54596A);
+  text-align: right;
+  min-width: 64px;
+}
+.sbw-row-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  min-width: 72px;
+  color: var(--sbw-fg, #1B1D24);
+}
+
+/* hover bar↔list link — bidirectional via JS-set data-hover-id + .sbw-hover-active */
+.sbw[data-hover-id] .sbw-seg { opacity: 0.3; }
+.sbw[data-hover-id] .sbw-row { opacity: 0.55; }
+.sbw[data-hover-id] .sbw-seg.sbw-hover-active,
+.sbw[data-hover-id] .sbw-row.sbw-hover-active { opacity: 1; }
+.sbw-row:hover { background: var(--sbw-row-hover, rgba(0,0,0,0.03)); border-radius: 4px; }
+
+/* show-more */
+.sbw-more {
+  align-self: flex-start;
+  margin-top: 6px;
+  background: none;
+  border: 0;
+  padding: 6px 0;
+  font: inherit;
+  font-size: 13px;
+  color: var(--sbw-accent, #5853D9);
+  cursor: pointer;
+}
+.sbw-more:hover { text-decoration: underline; }
+
+/* ============================================================
+   Alert plates — shared style.
+   Used for footer flags (partial/overflow), error, empty, loading.
+   Pastel background, no border, colored icon, dark text, action below.
+   ============================================================ */
+.sbw-foot {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  line-height: 1.4;
+  color: #1B1D24;
+}
+.sbw-foot svg { flex: 0 0 auto; margin-top: 1px; }
+.sbw-foot strong { font-weight: 600; }
+/* partial — warning (yellow) */
+.sbw-foot-muted {
+  background: #FCF3D6;
+}
+.sbw-foot-muted svg { color: #E0A800; }
+/* overflow — error (red) */
+.sbw-foot-warn  {
+  background: #FBE0DD;
+}
+.sbw-foot-warn svg { color: #D74333; }
+
+/* ----- skeleton (loading) ----- */
+.sbw-sk {
+  background: linear-gradient(90deg, #ECEEF3 0%, #F5F6F9 50%, #ECEEF3 100%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  animation: sbw-shimmer 1.4s linear infinite;
+}
+@keyframes sbw-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.sbw-sk-total { width: 56px; height: 18px; }
+.sbw-sk-bar   { height: 8px; border-radius: 999px; }
+.sbw-row-sk   { pointer-events: none; }
+.sbw-dot-sk   { background: #DCDFE6 !important; }
+.sbw-sk-text  { height: 12px; width: 60%; }
+.sbw-sk-num   { height: 12px; width: 72px; justify-self: end; }
+.sbw-row-sk   { grid-template-columns: 14px 1fr auto; }
+
+.sbw-loading-msg {
+  background: #E3F0FA;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #1B1D24;
+}
+.sbw-loading-msg::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #2978B5;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='5' r='1' fill='white'/><rect x='7.2' y='7' width='1.6' height='5' rx='0.6' fill='white'/></svg>");
+  background-size: cover;
+}
+.sbw-loading-text { flex: 1; min-width: 0; }
+.sbw-loading-title { font-size: 13px; font-weight: 600; color: #1B1D24; margin-bottom: 2px; }
+.sbw-loading-sub   { font-size: 12px; color: #54596A; }
+
+/* ----- error ----- */
+.sbw-error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #FBE0DD;
+  border-radius: 8px;
+  color: #1B1D24;
+}
+.sbw-error-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.sbw-error svg { color: #D74333; flex: 0 0 auto; margin-top: 1px; }
+.sbw-error-text { flex: 1; min-width: 0; }
+.sbw-error-title { font-size: 13px; font-weight: 600; color: #1B1D24; }
+.sbw-error-sub   { font-size: 12px; color: #54596A; margin-top: 2px; }
+.sbw-error-btn {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  color: #1B1D24;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  margin-left: 26px; /* align under text, past icon */
+}
+.sbw-error-btn:hover { background: #F5F6F9; }
+
+/* ----- empty ----- */
+.sbw-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #E3F0FA;
+  border-radius: 8px;
+  color: #1B1D24;
+  font-size: 13px;
+}
+.sbw-empty-icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #2978B5;
+  color: #fff;
+  display: grid; place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  font-family: ui-monospace, monospace;
+}
+
+/* ============================================================
+   CONTAINER QUERIES — the heart of adaptive behaviour
+   Breakpoints expressed in container width (inline-size).
+   ============================================================ */
+
+/* Medium 320–480px: compact */
+@container sbw (max-width: 480px) {
+  .sbw-total { font-size: 16px; }
+  .sbw-row { font-size: 13px; gap: 8px; }
+  .sbw-row-percent { min-width: 56px; }
+  .sbw-row-value   { min-width: 64px; }
+}
+
+/* Narrow <320px: hide percent column, two-line rows */
+@container sbw (max-width: 320px) {
+  .sbw-row {
+    grid-template-columns: 14px 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 2px;
+    padding: 8px 0;
+  }
+  .sbw-row-label { grid-column: 2 / 4; }
+  .sbw-row-percent { display: none; }
+  .sbw-row-value {
+    grid-column: 2 / 4;
+    text-align: left;
+    font-size: 12px;
+    color: var(--sbw-fg-muted, #54596A);
+    min-width: 0;
+  }
+  .sbw-total { font-size: 15px; }
+  .sbw-label { font-size: 12px; }
+}
+
+/* Very narrow <200px: collapse details, only total + label visible */
+@container sbw (max-width: 200px) {
+  .sbw-list, .sbw-bar { display: none; }
+  .sbw-header { flex-direction: column; align-items: stretch; gap: 4px; }
+  .sbw-total { font-size: 22px; }
+  .sbw-host::after {
+    content: "Развернуть";
+    font-size: 12px;
+    color: var(--sbw-accent, #5853D9);
+    cursor: pointer;
+    margin-top: 4px;
+    display: inline-block;
+  }
+}
+
+/* Degraded <160px: only total + label, with popup affordance */
+@container sbw (max-width: 160px) {
+  .sbw-label { font-size: 11px; }
+  .sbw-sublabel { display: none; }
+  .sbw-total { font-size: 18px; }
+  .sbw-host::after { content: "↗"; font-size: 14px; }
+}
+
+/* ============================================================
+   Height-constrained variant (manually toggled via data-height)
+   ============================================================ */
+
+.sbw-host[data-height="A"] .sbw,
+.sbw-host[data-height="B"] .sbw,
+.sbw-host[data-height="C"] .sbw {
+  position: relative;
+  overflow: hidden;
+}
+
+/* A: fade + "ещё N" */
+.sbw-host[data-height="A"] {
+  height: 140px;
+  position: relative;
+}
+.sbw-host[data-height="A"] .sbw { height: 100%; }
+.sbw-host[data-height="A"] .sbw-list {
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+}
+.sbw-host[data-height="A"] .sbw-fade-cta {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  font-size: 12px;
+  color: var(--sbw-accent, #5853D9);
+  cursor: pointer;
+}
+
+/* B: only header + bar */
+.sbw-host[data-height="B"] {
+  height: 70px;
+}
+.sbw-host[data-height="B"] .sbw-list { display: none; }
+
+/* C: only header */
+.sbw-host[data-height="C"] {
+  height: 48px;
+}
+.sbw-host[data-height="C"] .sbw-list,
+.sbw-host[data-height="C"] .sbw-bar { display: none; }
+
+/* dark theme variables — toggle via .sbw-dark wrapper */
+.sbw-dark {
+  --sbw-fg: #E8EAF0;
+  --sbw-fg-muted: #A0A6B5;
+  --sbw-fg-faint: #6E7484;
+  --sbw-track: #2A2D38;
+  --sbw-soft: #232631;
+  --sbw-row-hover: rgba(255,255,255,0.04);
+  --sbw-divider: rgba(255,255,255,0.06);
+  --sbw-accent: #9C97FF;
+}
+
+/* ============================================================
+   Stretch mode — bar + header span full container width,
+   but row content stays bounded so labels and values stay close.
+   Toggle with class .sbw-stretch on the host.
+   ============================================================ */
+.sbw-host.sbw-stretch .sbw { max-width: none; }
+.sbw-host.sbw-stretch .sbw-row,
+.sbw-host.sbw-stretch .sbw-foot {
+  /* hover bg / footer plate fills whole width; inner content is pushed
+     into a virtual 600px window from the left via padding-right */
+  padding-right: max(0px, calc(100% - 600px));
+}
+.sbw-host.sbw-stretch .sbw-foot { padding-right: max(12px, calc(100% - 600px)); }
+
+/* print: bar → text table */
+@media print {
+  .sbw-bar { display: none !important; }
+  .sbw-row { break-inside: avoid; }
+  .sbw-more { display: none !important; }
+}
